@@ -15,31 +15,29 @@ repositories {
 dependencies {
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine' // 解决测试问题
     implementation 'com.google.code.gson:gson:2.8.8'
-    implementation 'org.openjfx:javafx-controls:22' // Adjust version as needed
-    implementation 'org.openjfx:javafx-fxml:22'
-    implementation 'org.openjfx:javafx-controls:17'
+    implementation 'org.openjfx:javafx-controls:17' // 保证使用同一版本
     implementation 'org.openjfx:javafx-fxml:17'
 }
 
-test {
-    useJUnitPlatform()
-}
-
 javafx {
-    version = "17" // JavaFX version
-    modules = [ 'javafx.controls', 'javafx.fxml' ] // Add any additional modules you need
+    version = "17" // 或者改为 "22"，与依赖一致
+    modules = [ 'javafx.controls', 'javafx.fxml' ]
 }
 
 application {
     mainClass = 'me.program.Main'
     applicationDefaultJvmArgs = [
-            '--module-path', '/Users/User/IdeaProjects/Position_Calculator/lib',
+            '--module-path', 'C:/Users/User/IdeaProjects/Position_Calculator/lib', // Windows 路径
             '--add-modules', 'javafx.controls,javafx.fxml'
     ]
 }
+
 run {
     jvmArgs = ['--module-path', 'C:/Users/User/IdeaProjects/Position_Calculator/lib', '--add-modules', 'javafx.controls,javafx.fxml']
+}
 
-
+test {
+    useJUnitPlatform()
 }
