@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id 'application'
-    id 'org.openjfx.javafxplugin' version '0.0.14'
+    id 'org.openjfx.javafxplugin' version '0.0.14' // 确保插件版本正确
 }
 
 group = 'me.program'
@@ -9,35 +9,22 @@ version = '1.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
-    maven { url 'https://maven.java.net/content/groups/public/' }
 }
 
 dependencies {
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.junit.jupiter:junit-jupiter-engine' // 解决测试问题
-    implementation 'com.google.code.gson:gson:2.8.8'
-    implementation 'org.openjfx:javafx-controls:17' // 保证使用同一版本
+    implementation 'org.openjfx:javafx-controls:17' // 确保版本一致
     implementation 'org.openjfx:javafx-fxml:17'
+    implementation 'com.google.code.gson:gson:2.8.8'
 }
 
 javafx {
-    version = "17" // 或者改为 "22"，与依赖一致
+    version = "17" // 确保版本与依赖一致
     modules = [ 'javafx.controls', 'javafx.fxml' ]
 }
 
 application {
+    // 配置主类，使用完全限定类名
     mainClass = 'me.program.Main'
-    applicationDefaultJvmArgs = [
-            '--module-path', 'C:/Users/User/IdeaProjects/Position_Calculator/lib', // Windows 路径
-            '--add-modules', 'javafx.controls,javafx.fxml'
-    ]
-}
-
-run {
-    jvmArgs = ['--module-path', 'C:/Users/User/IdeaProjects/Position_Calculator/lib', '--add-modules', 'javafx.controls,javafx.fxml']
-}
-
-test {
-    useJUnitPlatform()
 }
