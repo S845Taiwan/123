@@ -1,0 +1,45 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.0.14'
+}
+
+group = 'me.program'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    maven { url 'https://maven.java.net/content/groups/public/' }
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    implementation 'com.google.code.gson:gson:2.8.8'
+    implementation 'org.openjfx:javafx-controls:22' // Adjust version as needed
+    implementation 'org.openjfx:javafx-fxml:22'
+    implementation 'org.openjfx:javafx-controls:17'
+    implementation 'org.openjfx:javafx-fxml:17'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+javafx {
+    version = "17" // JavaFX version
+    modules = [ 'javafx.controls', 'javafx.fxml' ] // Add any additional modules you need
+}
+
+application {
+    mainClass = 'me.program.Main'
+    applicationDefaultJvmArgs = [
+            '--module-path', '/Users/User/IdeaProjects/Position_Calculator/lib',
+            '--add-modules', 'javafx.controls,javafx.fxml'
+    ]
+}
+run {
+    jvmArgs = ['--module-path', 'C:/Users/User/IdeaProjects/Position_Calculator/lib', '--add-modules', 'javafx.controls,javafx.fxml']
+
+
+}
