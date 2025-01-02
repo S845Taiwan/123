@@ -12,7 +12,18 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import org.json.JSONObject;
+
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.file.*;
+import java.util.ArrayList;
+
 public class MainClass extends Application {
+
+    private ArrayList<Double> priceList = new ArrayList<>();
+
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("加密貨幣持倉計算器");
@@ -90,9 +101,17 @@ public class MainClass extends Application {
                 double leverage = Double.parseDouble(leverageField.getText());
                 String crypto = cryptoField.getText().toUpperCase();
 
-                // Placeholder for API or calculation logic
+                // Get current price and calculate stop-loss price
+                double currentPrice = GetApi.fetchCryptoPrice(crypto );
+                double stopPrice = crypto.equals("BTCUSDT") ? currentPrice - (currentPrice * 0.01) : crypto.equals("ETHUSDT") ? currentPrice - (currentPrice * (1.0/35.0)) : currentPrice;
+
+                // Calculate position size
+
                 double positionSize = (accountBalance * riskPercentage / 100) / stopLoss * leverage;
                 resultLabel.setText(String.format("持倉大小: %.2f USD", positionSize));
+
+                // Log data to a text file
+                logDataToFile(currentPrice, (float)stopPrice,positionSize,(int)leverage);
             } catch (Exception e) {
                 resultLabel.setText("錯誤: 無效的輸入或計算失敗");
                 e.printStackTrace();
@@ -103,12 +122,16 @@ public class MainClass extends Application {
         Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
             String crypto = cryptoField.getText().toUpperCase();
             if (!crypto.isEmpty()) {
-                double currentPrice = GetApi.fetchCryptoPrice(crypto); // Replace with actual API call
+                double currentPrice = GetApi.fetchCryptoPrice(crypto);
                 currentPriceValueLabel.setText(String.valueOf(currentPrice));
+                priceList.add(currentPrice);
 
                 // Calculate suggested stop-loss price based on input
-                double stopLoss = crypto.equals("BTCUSDT") ? currentPrice * 0.01 : crypto.equals("ETHUSDT") ? currentPrice * 0.02857 : 0.0; // 1% of BTC (1000 points), 1% of ETH (35 points)
+                double stopLoss = crypto.equals("BTCUSDT") ? currentPrice * 0.01 : crypto.equals("ETHUSDT") ? currentPrice * (1.0/35.0) : 0.0; // 1% of BTC (1000 points), 1% of ETH (35 points)
                 stopPriceSuggestionLabel.setText("建議止損價格: " + String.format("%.2f", currentPrice - stopLoss));
+
+                // Log prices to a text file
+                logPricesToFile();
             }
         }));
         timeline.setCycleCount(Timeline.INDEFINITE);
@@ -126,6 +149,26 @@ public class MainClass extends Application {
         Scene scene = new Scene(grid, 500, 400);
         primaryStage.setScene(scene);
         primaryStage.show();
+    }
+
+    private void logPricesToFile() {
+        try (BufferedWriter writer = Files.newBufferedWriter(Paths.get("prices_log.txt"), StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
+            writer.write("價格: " + priceList.get(priceList.size() - 1) + " USD\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void logDataToFile(double currentPrice, double stopPrice, double positionSize,int leverage) {
+        try (BufferedWriter writer = Files.newBufferedWriter(Paths.get("position_log.txt"), StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
+            writer.write("目前價格: " + currentPrice + " USD\n");
+            writer.write("止損價格: " + stopPrice + " USD\n");
+            writer.write("持倉大小: " + positionSize + " USD\n");
+            writer.write("槓桿倍數: " + leverage + "x\n");
+            writer.write("---------------------\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private Label createLabelWithDialog(String labelText, String dialogMessage) {
