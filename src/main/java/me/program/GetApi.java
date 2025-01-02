@@ -8,7 +8,7 @@ import java.net.URL;
 public class GetApi {
     // Method must be inside the class
     public static String fetchCryptoPrice(String crypto) {
-        String apiUrl = "https://api.example.com/price?symbol=" + crypto;
+        String apiUrl = "https://api.binance.com/api/v3/ticker/price?symbol=" + crypto + "USDT";
         StringBuilder result = new StringBuilder();
 
         try {

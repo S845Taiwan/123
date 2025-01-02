@@ -5,26 +5,36 @@ plugins {
 }
 
 group = 'me.program'
-version = '1.0-SNAPSHOT'
+version = '1.0'
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    testImplementation platform('org.junit:junit-bom:5.10.0')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    implementation 'org.openjfx:javafx-controls:17' // 确保版本一致
+    implementation 'org.openjfx:javafx-controls:17'
     implementation 'org.openjfx:javafx-fxml:17'
-    implementation 'com.google.code.gson:gson:2.8.8'
 }
 
 javafx {
-    version = "17" // 确保版本与依赖一致
-    modules = [ 'javafx.controls', 'javafx.fxml' ]
+    version = '17'
+    modules = ['javafx.controls', 'javafx.fxml']
 }
 
 application {
     // 配置主类，使用完全限定类名
-    mainClass = 'me.program.Main'
+    mainClass = 'me.program.MainClass'
+}
+
+jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    manifest {
+        attributes(
+                'Main-Class': application.mainClass
+        )
+    }
+
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
 }
