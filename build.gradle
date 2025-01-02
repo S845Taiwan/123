@@ -12,6 +12,7 @@ repositories {
 }
 
 dependencies {
+    implementation 'org.json:json:20210307'
     implementation 'org.openjfx:javafx-controls:17'
     implementation 'org.openjfx:javafx-fxml:17'
 }

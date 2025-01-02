@@ -1,5 +1,7 @@
 package me.program;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -8,6 +10,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 public class MainClass extends Application {
     @Override
@@ -61,11 +64,22 @@ public class MainClass extends Application {
         TextField leverageField = new TextField();
         GridPane.setConstraints(leverageField, 1, 5);
 
+        // Label to display the current price
+        Label currentPriceLabel = new Label("目前價格 (USD):");
+        GridPane.setConstraints(currentPriceLabel, 0, 6);
+        Label currentPriceValueLabel = new Label("0.0"); // Initialize with 0.0
+        GridPane.setConstraints(currentPriceValueLabel, 1, 6);
+
+        // Label to display the suggested stop-loss price
+        Label stopPriceSuggestionLabel = new Label("建議止損價格: N/A");
+        GridPane.setConstraints(stopPriceSuggestionLabel, 0, 7);
+        GridPane.setColumnSpan(stopPriceSuggestionLabel, 2);
+
         Button calculateButton = new Button("計算");
-        GridPane.setConstraints(calculateButton, 1, 6);
+        GridPane.setConstraints(calculateButton, 1, 8);
 
         Label resultLabel = new Label();
-        GridPane.setConstraints(resultLabel, 1, 7);
+        GridPane.setConstraints(resultLabel, 1, 9);
 
         // Add action to calculate button
         calculateButton.setOnAction(event -> {
@@ -85,11 +99,27 @@ public class MainClass extends Application {
             }
         });
 
+        // Timeline to update the current price every second based on user input
+        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
+            String crypto = cryptoField.getText().toUpperCase();
+            if (!crypto.isEmpty()) {
+                double currentPrice = GetApi.fetchCryptoPrice(crypto); // Replace with actual API call
+                currentPriceValueLabel.setText(String.valueOf(currentPrice));
+
+                // Calculate suggested stop-loss price based on input
+                double stopLoss = crypto.equals("BTCUSDT") ? currentPrice * 0.01 : crypto.equals("ETHUSDT") ? currentPrice * 0.02857 : 0.0; // 1% of BTC (1000 points), 1% of ETH (35 points)
+                stopPriceSuggestionLabel.setText("建議止損價格: " + String.format("%.2f", currentPrice - stopLoss));
+            }
+        }));
+        timeline.setCycleCount(Timeline.INDEFINITE);
+        timeline.play();
+
         // Add components to grid
         grid.getChildren().addAll(
                 btcImageView, ethImageView, accountBalanceLabel, accountBalanceField,
                 riskLabel, riskField, stopLossLabel, stopLossField, cryptoLabel,
-                cryptoField, leverageLabel, leverageField, calculateButton, resultLabel
+                cryptoField, leverageLabel, leverageField, currentPriceLabel,
+                currentPriceValueLabel, stopPriceSuggestionLabel, calculateButton, resultLabel
         );
 
         // Set scene and stage
