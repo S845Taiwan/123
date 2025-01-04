@@ -12,6 +12,8 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.io.*;
+import java.nio.file.*;
 import java.util.ArrayList;
 
 public class MainClass extends Application {
@@ -26,7 +28,7 @@ public class MainClass extends Application {
         String btcLogoUrl = "https://cryptologos.cc/logos/bitcoin-btc-logo.png";
         String ethLogoUrl = "https://cryptologos.cc/logos/ethereum-eth-logo.png";
 
-        // GridPane 佈局
+        // GridPane layout
         GridPane grid = new GridPane();
         grid.setPadding(new Insets(10, 10, 10, 10));
         grid.setVgap(10);
@@ -43,99 +45,125 @@ public class MainClass extends Application {
         ethImageView.setFitWidth(50);
         GridPane.setConstraints(ethImageView, 1, 0);
 
-        // 輸入欄位
-        Label accountBalanceLabel = new Label("帳戶餘額 (USD):");
+        // Input fields with dialog for explanations
+        Label accountBalanceLabel = createLabelWithDialog("帳戶餘額 (USD):", "輸入您交易帳戶的總資金。");
         GridPane.setConstraints(accountBalanceLabel, 0, 1);
         TextField accountBalanceField = new TextField();
         GridPane.setConstraints(accountBalanceField, 1, 1);
 
-        Label riskModeLabel = new Label("風險模式:");
-        GridPane.setConstraints(riskModeLabel, 0, 2);
-        ComboBox<String> riskModeComboBox = new ComboBox<>();
-        riskModeComboBox.getItems().addAll("百分比 (%)", "固定金額 (USD)");
-        riskModeComboBox.setValue("百分比 (%)");
-        GridPane.setConstraints(riskModeComboBox, 1, 2);
+        Label riskAmountLabel = createLabelWithDialog("每單止損金額 (USD):", "輸入每單交易您願意承擔的虧損金額，例如 100 USD。");
+        GridPane.setConstraints(riskAmountLabel, 0, 2);
+        TextField riskAmountField = new TextField();
+        GridPane.setConstraints(riskAmountField, 1, 2);
 
-        Label riskValueLabel = new Label("風險百分比 (%):");
-        GridPane.setConstraints(riskValueLabel, 0, 3);
-        TextField riskValueField = new TextField();
-        GridPane.setConstraints(riskValueField, 1, 3);
+        Label cryptoLabel = new Label("加密貨幣:");
+        GridPane.setConstraints(cryptoLabel, 0, 3);
+        ComboBox<String> cryptoComboBox = new ComboBox<>();
+        cryptoComboBox.getItems().addAll("BTCUSDT", "ETHUSDT");
+        cryptoComboBox.setValue("BTCUSDT");
+        GridPane.setConstraints(cryptoComboBox, 1, 3);
 
-        riskModeComboBox.setOnAction(event -> {
-            if (riskModeComboBox.getValue().equals("百分比 (%)")) {
-                riskValueLabel.setText("風險百分比 (%):");
-            } else {
-                riskValueLabel.setText("風險金額 (USD):");
-            }
-        });
-
-        Label stopLossLabel = new Label("止損範圍 (USD):");
-        GridPane.setConstraints(stopLossLabel, 0, 4);
-        TextField stopLossField = new TextField();
-        GridPane.setConstraints(stopLossField, 1, 4);
-
-        Label cryptoLabel = new Label("加密貨幣 (BTCUSDT/ETHUSDT):");
-        GridPane.setConstraints(cryptoLabel, 0, 5);
-        TextField cryptoField = new TextField();
-        GridPane.setConstraints(cryptoField, 1, 5);
-
-        Label leverageLabel = new Label("槓桿倍數:");
-        GridPane.setConstraints(leverageLabel, 0, 6);
+        Label leverageLabel = createLabelWithDialog("槓桿倍數:", "輸入交易的槓桿倍數，例如 10x、20x 等。");
+        GridPane.setConstraints(leverageLabel, 0, 4);
         TextField leverageField = new TextField();
-        GridPane.setConstraints(leverageField, 1, 6);
+        GridPane.setConstraints(leverageField, 1, 4);
 
         Label currentPriceLabel = new Label("目前價格 (USD):");
-        GridPane.setConstraints(currentPriceLabel, 0, 7);
-        Label currentPriceValueLabel = new Label("0.0");
-        GridPane.setConstraints(currentPriceValueLabel, 1, 7);
+        GridPane.setConstraints(currentPriceLabel, 0, 5);
+        Label currentPriceValueLabel = new Label("0.0"); // Initialize with 0.0
+        GridPane.setConstraints(currentPriceValueLabel, 1, 5);
+
+        Label stopPriceSuggestionLabel = new Label("建議止損價格: N/A");
+        GridPane.setConstraints(stopPriceSuggestionLabel, 0, 6);
+        GridPane.setColumnSpan(stopPriceSuggestionLabel, 2);
 
         Button calculateButton = new Button("計算");
-        GridPane.setConstraints(calculateButton, 1, 8);
+        GridPane.setConstraints(calculateButton, 1, 7);
 
         Label resultLabel = new Label();
-        GridPane.setConstraints(resultLabel, 1, 9);
+        GridPane.setConstraints(resultLabel, 1, 8);
 
         calculateButton.setOnAction(event -> {
             try {
                 double accountBalance = Double.parseDouble(accountBalanceField.getText());
-                double stopLoss = Double.parseDouble(stopLossField.getText());
+                double riskAmount = Double.parseDouble(riskAmountField.getText());
                 double leverage = Double.parseDouble(leverageField.getText());
-                String crypto = cryptoField.getText().toUpperCase();
-
-                double riskAmount;
-                if (riskModeComboBox.getValue().equals("百分比 (%)")) {
-                    double riskPercentage = Double.parseDouble(riskValueField.getText());
-                    riskAmount = accountBalance * (riskPercentage / 100);
-                } else {
-                    riskAmount = Double.parseDouble(riskValueField.getText());
-                }
+                String crypto = cryptoComboBox.getValue();
 
                 double currentPrice = GetApi.fetchCryptoPrice(crypto);
-                double positionSize = riskAmount / stopLoss * leverage;
-                double margin = positionSize / leverage;
+                double positionSize = riskAmount * leverage / currentPrice;
+                double margin = riskAmount / leverage;
+                double stopPrice = currentPrice - (riskAmount / positionSize);
                 double liquidationPrice = currentPrice * (1 - (1 / leverage));
 
-                resultLabel.setText(String.format(
-                        "風險金額: %.2f USD\n持倉大小: %.2f USD\n保證金: %.2f USD\n強平價格: %.2f USD",
-                        riskAmount, positionSize, margin, liquidationPrice
-                ));
+                resultLabel.setText(String.format("每單止損金額: %.2f USD\n持倉大小: %.6f %s\n保證金: %.2f USD\n止損價格: %.2f USD\n強平價格: %.2f USD",
+                        riskAmount, positionSize, crypto, margin, stopPrice, liquidationPrice));
+
+                logDataToFile(currentPrice, stopPrice, positionSize, margin, (int) leverage, liquidationPrice);
             } catch (Exception e) {
                 resultLabel.setText("錯誤: 無效的輸入或計算失敗");
                 e.printStackTrace();
             }
         });
 
+        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
+            String crypto = cryptoComboBox.getValue();
+            double currentPrice = GetApi.fetchCryptoPrice(crypto);
+            currentPriceValueLabel.setText(String.valueOf(currentPrice));
+            priceList.add(currentPrice);
+
+            double stopLoss = riskAmountField.getText().isEmpty() ? 0 : Double.parseDouble(riskAmountField.getText());
+            double suggestedStopPrice = currentPrice - (stopLoss / currentPrice);
+            stopPriceSuggestionLabel.setText("建議止損價格: " + String.format("%.2f", suggestedStopPrice));
+
+            logPricesToFile();
+        }));
+        timeline.setCycleCount(Timeline.INDEFINITE);
+        timeline.play();
+
         grid.getChildren().addAll(
                 btcImageView, ethImageView, accountBalanceLabel, accountBalanceField,
-                riskModeLabel, riskModeComboBox, riskValueLabel, riskValueField,
-                stopLossLabel, stopLossField, cryptoLabel, cryptoField,
-                leverageLabel, leverageField, currentPriceLabel, currentPriceValueLabel,
-                calculateButton, resultLabel
+                riskAmountLabel, riskAmountField, cryptoLabel, cryptoComboBox, leverageLabel, leverageField,
+                currentPriceLabel, currentPriceValueLabel, stopPriceSuggestionLabel, calculateButton, resultLabel
         );
 
         Scene scene = new Scene(grid, 600, 500);
         primaryStage.setScene(scene);
         primaryStage.show();
+    }
+
+    private void logPricesToFile() {
+        try (BufferedWriter writer = Files.newBufferedWriter(Paths.get("prices_log.txt"), StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
+            writer.write("價格: " + priceList.get(priceList.size() - 1) + " USD\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void logDataToFile(double currentPrice, double stopPrice, double positionSize, double margin, int leverage, double liquidationPrice) {
+        try (BufferedWriter writer = Files.newBufferedWriter(Paths.get("position_log.txt"), StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
+            writer.write("目前價格: " + currentPrice + " USD\n");
+            writer.write("止損價格: " + stopPrice + " USD\n");
+            writer.write("持倉大小: " + positionSize + " USD\n");
+            writer.write("保證金: " + margin + " USD\n");
+            writer.write("槓桿倍數: " + leverage + "x\n");
+            writer.write("強平價格: " + liquidationPrice + " USD\n");
+            writer.write("---------------------\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private Label createLabelWithDialog(String labelText, String dialogMessage) {
+        Label label = new Label(labelText);
+        label.setOnMouseClicked(event -> {
+            Alert dialog = new Alert(Alert.AlertType.INFORMATION);
+            dialog.setTitle("說明");
+            dialog.setHeaderText(labelText);
+            dialog.setContentText(dialogMessage);
+            dialog.showAndWait();
+        });
+        return label;
     }
 
     public static void main(String[] args) {
