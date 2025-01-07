@@ -1,7 +1,8 @@
 plugins {
     id 'java'
     id 'application'
-    id 'org.openjfx.javafxplugin' version '0.0.14' // 确保插件版本正确
+    id 'org.openjfx.javafxplugin' version '0.0.14'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 group = 'me.program'
@@ -26,7 +27,17 @@ application {
     // 配置主类，使用完全限定类名
     mainClass = 'me.program.MainClass'
 }
+tasks.named("distZip").configure {
+    dependsOn(tasks.shadowJar)
+}
 
+tasks.named("distTar").configure {
+    dependsOn(tasks.shadowJar)
+}
+
+tasks.named("startScripts").configure {
+    dependsOn(tasks.shadowJar)
+}
 jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest {
@@ -37,5 +48,27 @@ jar {
 
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+shadowJar {
+    archiveBaseName.set("Position_Calculator")
+    archiveClassifier.set("all") // Ensures the shadow JAR has a unique name
+    archiveVersion.set("1.0")
+}
+
+tasks.register('jpackage', Exec) {
+    dependsOn shadowJar
+    commandLine 'jpackage',
+            '--input', 'build/libs',
+            '--main-jar', 'position_calculator-1.0-all.jar',
+            '--main-class', 'me.program.MainClass', // Replace with your main class
+            '--name', 'PositionCalculator',
+            '--type', 'exe',
+            '--module-path', "C:/Users/User/IdeaProjects/Position_Calculator/lib",
+            '--add-modules', 'javafx.controls,javafx.fxml'
+}
+processResources {
+    from('src/main/resources/javafx-sdk') {
+        into 'javafx-sdk'
     }
 }

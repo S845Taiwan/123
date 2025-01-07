@@ -82,7 +82,7 @@ public class MainClass extends Application {
                 "ADA - Cardano",
                 "DOGE - Dogecoin",
                 "SOL - Solana",
-                "MATIC - Polygon",
+                "POL - Polygon",
                 "DOT - Polkadot",
                 "LTC - Litecoin"
         );
