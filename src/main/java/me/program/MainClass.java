@@ -20,7 +20,7 @@ public class MainClass extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        primaryStage.setTitle("加密貨幣持倉計算器");
+        primaryStage.setTitle("加密貨幣持倉計算器-3B332037");
 
         // 動態背景設置
         StackPane root = new StackPane();
@@ -44,7 +44,7 @@ public class MainClass extends Application {
         String dogeLogoUrl = "https://cryptologos.cc/logos/dogecoin-doge-logo.png";
         String solLogoUrl = "https://cryptologos.cc/logos/solana-sol-logo.png";
         String maticLogoUrl = "https://cryptologos.cc/logos/polygon-matic-logo.png";
-        String dotLogoUrl = "https://cryptologos.cc/logos/polkadot-dot-logo.png";
+        String dotLogoUrl = "https://cryptologos.cc/logos/polkadot-new-dot-logo.png?v=040";
         String ltcLogoUrl = "https://cryptologos.cc/logos/litecoin-ltc-logo.png";
 
         // GridPane布局：用於顯示控件
@@ -147,7 +147,7 @@ public class MainClass extends Application {
                 case "SOL":
                     cryptoImageView.setImage(new Image(solLogoUrl));
                     break;
-                case "MATIC":
+                case "POL":
                     cryptoImageView.setImage(new Image(maticLogoUrl));
                     break;
                 case "DOT":
