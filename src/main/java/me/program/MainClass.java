@@ -31,11 +31,11 @@ public class MainClass extends Application {
         FillTransition fillTransition = new FillTransition(Duration.seconds(5), background);
         fillTransition.setFromValue(Color.LIGHTBLUE);
         fillTransition.setToValue(Color.LIGHTPINK);
-        fillTransition.setCycleCount(Timeline.INDEFINITE);
-        fillTransition.setAutoReverse(true);
+        fillTransition.setCycleCount(Timeline.INDEFINITE);  // 設置無限循環
+        fillTransition.setAutoReverse(true);  // 設置動畫反向
         fillTransition.play();
 
-        // 圖片網址
+        // 圖片網址，這些是加密貨幣的圖標URL
         String btcLogoUrl = "https://cryptologos.cc/logos/bitcoin-btc-logo.png";
         String ethLogoUrl = "https://cryptologos.cc/logos/ethereum-eth-logo.png";
         String bnbLogoUrl = "https://cryptologos.cc/logos/binance-coin-bnb-logo.png";
@@ -47,32 +47,33 @@ public class MainClass extends Application {
         String dotLogoUrl = "https://cryptologos.cc/logos/polkadot-dot-logo.png";
         String ltcLogoUrl = "https://cryptologos.cc/logos/litecoin-ltc-logo.png";
 
-        // GridPane layout
+        // GridPane布局：用於顯示控件
         GridPane grid = new GridPane();
         grid.setPadding(new Insets(10, 10, 10, 10));
-        grid.setVgap(10);
-        grid.setHgap(10);
+        grid.setVgap(10);  // 垂直間距
+        grid.setHgap(10);  // 水平間距
 
-        // 標題圖片
+        // 顯示加密貨幣圖標
         ImageView cryptoImageView = new ImageView(new Image(btcLogoUrl));
         cryptoImageView.setFitHeight(50);
         cryptoImageView.setFitWidth(50);
-        GridPane.setConstraints(cryptoImageView, 0, 0);
+        GridPane.setConstraints(cryptoImageView, 0, 0);  // 設定位置
 
+        // 標題Label
         Label titleLabel = new Label("加密貨幣持倉計算器");
         titleLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
-        GridPane.setConstraints(titleLabel, 1, 0, 2, 1);
+        GridPane.setConstraints(titleLabel, 1, 0, 2, 1);  // 設定標題位置
 
-        // Input fields
+        // 帳戶餘額輸入框
         Label accountBalanceLabel = new Label("帳戶餘額 (USD):");
         GridPane.setConstraints(accountBalanceLabel, 0, 1);
         TextField accountBalanceField = new TextField();
         GridPane.setConstraints(accountBalanceField, 1, 1);
 
+        // 加密貨幣選擇框
         Label cryptoLabel = new Label("加密貨幣:");
         GridPane.setConstraints(cryptoLabel, 0, 2);
 
-        // 加密貨幣選項列表
         ComboBox<String> cryptoComboBox = new ComboBox<>();
         cryptoComboBox.getItems().addAll(
                 "BTC - Bitcoin",
@@ -86,41 +87,44 @@ public class MainClass extends Application {
                 "DOT - Polkadot",
                 "LTC - Litecoin"
         );
-        cryptoComboBox.setValue("BTC - Bitcoin"); // 預設選擇 Bitcoin
+        cryptoComboBox.setValue("BTC - Bitcoin");  // 預設選擇 Bitcoin
         GridPane.setConstraints(cryptoComboBox, 1, 2);
 
+        // 顯示當前價格的Label
         Label currentPriceLabel = new Label("目前價格 (USD):");
         GridPane.setConstraints(currentPriceLabel, 0, 3);
-        Label currentPriceValueLabel = new Label("0.0"); // Initialize with 0.0
+        Label currentPriceValueLabel = new Label("0.0");  // 初始化為0.0
         GridPane.setConstraints(currentPriceValueLabel, 1, 3);
 
+        // 設置下單模式
         Label orderTypeLabel = new Label("下單模式:");
         GridPane.setConstraints(orderTypeLabel, 0, 4);
         ComboBox<String> orderTypeComboBox = new ComboBox<>();
         orderTypeComboBox.getItems().addAll("市價單", "限價單");
-        orderTypeComboBox.setValue("市價單"); // 預設為市價單
+        orderTypeComboBox.setValue("市價單");  // 預設為市價單
         GridPane.setConstraints(orderTypeComboBox, 1, 4);
 
+        // 限價價格輸入框
         Label limitPriceLabel = new Label("限價價格 (USD):");
         GridPane.setConstraints(limitPriceLabel, 0, 5);
         TextField limitPriceField = new TextField();
-        limitPriceField.setDisable(true); // 預設禁用
+        limitPriceField.setDisable(true);  // 預設禁用
         GridPane.setConstraints(limitPriceField, 1, 5);
 
-        // 動態切換限價輸入框的啟用狀態
+        // 設置限價價格框的啟用與禁用，根據選擇的下單模式
         orderTypeComboBox.setOnAction(event -> {
             if (orderTypeComboBox.getValue().equals("限價單")) {
-                limitPriceField.setDisable(false);
+                limitPriceField.setDisable(false);  // 啟用限價價格框
             } else {
-                limitPriceField.setDisable(true);
+                limitPriceField.setDisable(true);  // 禁用限價價格框
                 limitPriceField.clear();
             }
         });
 
-        // 清空限價框並更新圖片當幣種變更時
+        // 清空限價價格框並更新圖片當幣種變更時
         cryptoComboBox.setOnAction(event -> {
-            limitPriceField.clear();
-            String selectedCrypto = cryptoComboBox.getValue().split(" - ")[0];
+            limitPriceField.clear();  // 清空限價價格框
+            String selectedCrypto = cryptoComboBox.getValue().split(" - ")[0];  // 取得選中的幣種代碼
             switch (selectedCrypto) {
                 case "BTC":
                     cryptoImageView.setImage(new Image(btcLogoUrl));
@@ -157,11 +161,12 @@ public class MainClass extends Application {
             }
         });
 
+        // 其他交易設置 (交易方向、止損額、槓桿等)
         Label directionLabel = new Label("交易方向:");
         GridPane.setConstraints(directionLabel, 0, 6);
         ComboBox<String> directionComboBox = new ComboBox<>();
         directionComboBox.getItems().addAll("做多", "做空");
-        directionComboBox.setValue("做多"); // 預設為做多
+        directionComboBox.setValue("做多");  // 預設為做多
         GridPane.setConstraints(directionComboBox, 1, 6);
 
         Label stopLossAmountLabel = new Label("預期損失 (USD):");
@@ -176,28 +181,33 @@ public class MainClass extends Application {
 
         Label volatilityLabel = new Label("價格波動幅度 (%):");
         GridPane.setConstraints(volatilityLabel, 0, 9);
-        TextField volatilityField = new TextField("2.0"); // 預設值 2%
+        TextField volatilityField = new TextField("2.0");  // 預設值 2%
         GridPane.setConstraints(volatilityField, 1, 9);
 
+        // 計算按鈕
         Button calculateButton = new Button("計算");
         GridPane.setConstraints(calculateButton, 1, 10);
 
+        // 顯示結果的Label
         Label resultLabel = new Label();
         resultLabel.setStyle("-fx-border-color: black; -fx-padding: 10px; -fx-background-color: #e0e0e0; -fx-font-size: 14px;");
         GridPane.setConstraints(resultLabel, 0, 11);
         GridPane.setColumnSpan(resultLabel, 2);
 
+        // 計算按鈕的事件處理
         calculateButton.setOnAction(event -> {
             try {
+                // 取得用戶輸入的數值
                 double stopLossAmount = Double.parseDouble(stopLossAmountField.getText());
                 double leverage = Double.parseDouble(leverageField.getText());
                 double volatility = Double.parseDouble(volatilityField.getText()) / 100; // 百分比轉小數
 
-                // 從 ComboBox 選取幣種代碼
+                // 取得選中的加密貨幣代碼並調用API獲取價格
                 String selectedCrypto = cryptoComboBox.getValue().split(" - ")[0] + "USDT";
                 double currentPrice = GetApi.fetchCryptoPrice(selectedCrypto);
-                double priceToUse = currentPrice; // 默認使用市價
+                double priceToUse = currentPrice;  // 默認使用市價
 
+                // 根據選擇的下單模式，使用市價或限價價格
                 if (orderTypeComboBox.getValue().equals("限價單")) {
                     if (limitPriceField.getText().isEmpty()) {
                         resultLabel.setText("錯誤: 請輸入限價價格");
@@ -207,9 +217,9 @@ public class MainClass extends Application {
                 }
 
                 // 計算波動金額與止損價格
-                double priceMovement = volatility * priceToUse; // 波動金額
+                double priceMovement = volatility * priceToUse;  // 計算波動金額
                 double stopPrice = directionComboBox.getValue().equals("做多")
-                        ? priceToUse - priceMovement // 做多止損價格
+                        ? priceToUse - priceMovement  // 做多止損價格
                         : priceToUse + priceMovement; // 做空止損價格
 
                 // 計算保證金
@@ -230,6 +240,7 @@ public class MainClass extends Application {
             }
         });
 
+        // 定時更新顯示當前價格
         Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
             String selectedCrypto = cryptoComboBox.getValue().split(" - ")[0] + "USDT";
             if (!selectedCrypto.isEmpty()) {
@@ -240,6 +251,7 @@ public class MainClass extends Application {
         timeline.setCycleCount(Timeline.INDEFINITE);
         timeline.play();
 
+        // 添加所有元素到GridPane中
         grid.getChildren().addAll(
                 cryptoImageView, titleLabel, accountBalanceLabel, accountBalanceField,
                 cryptoLabel, cryptoComboBox, currentPriceLabel, currentPriceValueLabel,
@@ -249,13 +261,13 @@ public class MainClass extends Application {
                 calculateButton, resultLabel
         );
 
-        root.getChildren().add(grid);
-        Scene scene = new Scene(root, 600, 600);
-        primaryStage.setScene(scene);
-        primaryStage.show();
+        root.getChildren().add(grid);  // 將GridPane添加到根節點中
+        Scene scene = new Scene(root, 600, 600);  // 創建場景
+        primaryStage.setScene(scene);  // 設置場景
+        primaryStage.show();  // 顯示舞台
     }
 
     public static void main(String[] args) {
-        launch(args);
+        launch(args);  // 啟動應用程式
     }
 }
